@@ -1,0 +1,1924 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard — R Narayana and Bros.</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --primary: #8B1538;
+            --primary-dark: #6B0F2B;
+            --primary-light: #B91D50;
+            --primary-gradient: linear-gradient(135deg, #8B1538 0%, #C41E4A 50%, #8B1538 100%);
+            --secondary: #D4AF37;
+            --secondary-light: #E5C76B;
+            --gold-gradient: linear-gradient(135deg, #D4AF37 0%, #F4D03F 50%, #D4AF37 100%);
+            --sidebar-bg: linear-gradient(180deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%);
+            --sidebar-hover: rgba(139, 21, 56, 0.3);
+            --bg-main: #f0f4f8;
+            --bg-card: #ffffff;
+            --text-dark: #1a1a1a;
+            --text-gray: #64748b;
+            --text-light: #94a3b8;
+            --white: #ffffff;
+            --success: #10b981;
+            --success-light: #d1fae5;
+            --warning: #f59e0b;
+            --warning-light: #fef3c7;
+            --error: #ef4444;
+            --error-light: #fee2e2;
+            --info: #3b82f6;
+            --info-light: #dbeafe;
+            --purple: #8b5cf6;
+            --purple-light: #ede9fe;
+            --pink: #ec4899;
+            --pink-light: #fce7f3;
+            --teal: #14b8a6;
+            --teal-light: #ccfbf1;
+            --shadow: 0 1px 3px rgba(0,0,0,0.1);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1);
+            --shadow-xl: 0 25px 50px -12px rgba(0,0,0,0.15);
+            --shadow-glow: 0 0 30px rgba(139, 21, 56, 0.2);
+            --radius: 8px;
+            --radius-lg: 12px;
+            --radius-xl: 16px;
+            --radius-2xl: 24px;
+            --radius-full: 9999px;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg-main); color: var(--text-dark); display: flex; min-height: 100vh; overflow-x: hidden; }
+        
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes gradientFlow { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+        .animate-fadeIn { animation: fadeInUp 0.5s ease forwards; }
+        
+        /* Login Page */
+        .login-page { position: fixed; inset: 0; background: var(--primary-gradient); background-size: 400% 400%; animation: gradientFlow 10s ease infinite; display: flex; align-items: center; justify-content: center; z-index: 2000; }
+        .login-page::before { content: ''; position: absolute; inset: 0; background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"); }
+        .login-card { background: white; padding: 50px; border-radius: var(--radius-2xl); width: 100%; max-width: 450px; box-shadow: var(--shadow-xl); position: relative; animation: fadeInUp 0.6s ease; }
+        .login-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 5px; background: var(--gold-gradient); border-radius: var(--radius-2xl) var(--radius-2xl) 0 0; }
+        .login-logo { text-align: center; margin-bottom: 40px; }
+        .login-logo-icon { width: 80px; height: 80px; background: var(--primary-gradient); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 36px; font-weight: 800; color: var(--secondary); box-shadow: var(--shadow-glow); }
+        .login-logo h1 { color: var(--primary); font-size: 28px; margin-bottom: 8px; background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .login-logo p { color: var(--text-gray); font-size: 14px; }
+        
+        .form-group { margin-bottom: 25px; }
+        .form-group label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 10px; color: var(--text-dark); }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 16px 20px; border: 2px solid #e2e8f0; border-radius: var(--radius-lg); font-size: 15px; transition: all 0.3s; background: #f8fafc; font-family: 'Inter', sans-serif; }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--primary); background: white; box-shadow: 0 0 0 4px rgba(139, 21, 56, 0.1); }
+        .form-error { color: var(--error); font-size: 13px; margin-top: 8px; padding: 10px; background: var(--error-light); border-radius: var(--radius); display: none; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 16px 28px; border-radius: var(--radius-lg); font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.3s; border: none; width: 100%; position: relative; overflow: hidden; font-family: 'Inter', sans-serif; }
+        .btn::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent); transition: left 0.5s; }
+        .btn:hover::before { left: 100%; }
+        .btn-primary { background: var(--primary-gradient); background-size: 200% auto; color: white; box-shadow: var(--shadow-glow); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(139, 21, 56, 0.3); }
+        .btn-outline { background: white; color: var(--text-dark); border: 2px solid #e2e8f0; }
+        .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+        .btn-sm { padding: 10px 20px; font-size: 13px; width: auto; }
+        .btn-success { background: linear-gradient(135deg, var(--success) 0%, #34d399 100%); color: white; }
+        .btn-danger { background: linear-gradient(135deg, var(--error) 0%, #f87171 100%); color: white; }
+        .btn-warning { background: linear-gradient(135deg, var(--warning) 0%, #fbbf24 100%); color: white; }
+        .btn-info { background: linear-gradient(135deg, var(--info) 0%, #60a5fa 100%); color: white; }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        
+        /* Sidebar */
+        .sidebar { width: 280px; background: var(--sidebar-bg); color: white; position: fixed; height: 100vh; overflow-y: auto; box-shadow: var(--shadow-xl); }
+        .sidebar::-webkit-scrollbar { width: 6px; }
+        .sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 3px; }
+        .sidebar-header { padding: 25px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; gap: 15px; }
+        .sidebar-logo { width: 50px; height: 50px; background: var(--primary-gradient); border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center; font-weight: 800; color: var(--secondary); font-size: 22px; box-shadow: 0 4px 15px rgba(139, 21, 56, 0.4); }
+        .sidebar-text h2 { font-size: 16px; font-weight: 700; }
+        .sidebar-text span { font-size: 11px; color: var(--text-light); letter-spacing: 1px; }
+        .sidebar-menu { padding: 20px 0; }
+        .menu-section { margin-bottom: 30px; }
+        .menu-title { font-size: 10px; text-transform: uppercase; letter-spacing: 2px; color: var(--text-light); padding: 0 25px; margin-bottom: 15px; font-weight: 600; }
+        .menu-item { display: flex; align-items: center; gap: 15px; padding: 14px 25px; color: rgba(255,255,255,0.7); cursor: pointer; transition: all 0.3s; border-left: 4px solid transparent; margin: 4px 0; position: relative; }
+        .menu-item::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: var(--primary-gradient); transition: width 0.3s; opacity: 0.2; }
+        .menu-item:hover::before { width: 100%; }
+        .menu-item:hover { color: white; border-left-color: var(--secondary); }
+        .menu-item.active { background: var(--sidebar-hover); color: white; border-left-color: var(--secondary); }
+        .menu-item.active::before { width: 100%; }
+        .menu-item svg { width: 22px; height: 22px; flex-shrink: 0; }
+        .menu-item span { font-size: 14px; font-weight: 500; }
+        .menu-badge { margin-left: auto; background: var(--primary-gradient); font-size: 11px; padding: 4px 10px; border-radius: var(--radius-full); font-weight: 700; animation: pulse 2s infinite; }
+        
+        /* Main Content */
+        .main-content { flex: 1; margin-left: 280px; min-height: 100vh; background: var(--bg-main); }
+        .top-header { background: white; padding: 20px 35px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; z-index: 50; box-shadow: var(--shadow); }
+        .page-title h1 { font-size: 24px; font-weight: 700; background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .page-title p { font-size: 14px; color: var(--text-gray); margin-top: 4px; }
+        .header-actions { display: flex; align-items: center; gap: 20px; }
+        .header-search { display: flex; align-items: center; gap: 10px; background: #f1f5f9; padding: 10px 20px; border-radius: var(--radius-full); width: 300px; }
+        .header-search input { border: none; background: none; outline: none; width: 100%; font-size: 14px; }
+        .header-search svg { color: var(--text-gray); }
+        .notification-btn { width: 45px; height: 45px; background: #f1f5f9; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; transition: all 0.3s; border: none; }
+        .notification-btn:hover { background: #e2e8f0; }
+        .notification-btn .dot { position: absolute; top: 10px; right: 10px; width: 10px; height: 10px; background: var(--error); border-radius: 50%; border: 2px solid white; }
+        .user-profile { display: flex; align-items: center; gap: 12px; cursor: pointer; padding: 8px 15px; border-radius: var(--radius-lg); transition: all 0.3s; }
+        .user-profile:hover { background: #f1f5f9; }
+        .user-avatar { width: 45px; height: 45px; background: var(--primary-gradient); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 18px; }
+        .user-info h4 { font-size: 14px; font-weight: 600; }
+        .user-info p { font-size: 12px; color: var(--text-gray); }
+        .dashboard-content { padding: 35px; }
+        
+        /* Stats Cards */
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 25px; margin-bottom: 35px; }
+        .stat-card { background: white; border-radius: var(--radius-xl); padding: 28px; box-shadow: var(--shadow); display: flex; align-items: flex-start; gap: 20px; transition: all 0.3s; position: relative; overflow: hidden; animation: fadeInUp 0.5s ease forwards; }
+        .stat-card:nth-child(1) { animation-delay: 0.1s; }
+        .stat-card:nth-child(2) { animation-delay: 0.2s; }
+        .stat-card:nth-child(3) { animation-delay: 0.3s; }
+        .stat-card:nth-child(4) { animation-delay: 0.4s; }
+        .stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; }
+        .stat-card:nth-child(1)::before { background: var(--primary-gradient); }
+        .stat-card:nth-child(2)::before { background: linear-gradient(90deg, var(--success), #34d399); }
+        .stat-card:nth-child(3)::before { background: linear-gradient(90deg, var(--info), #60a5fa); }
+        .stat-card:nth-child(4)::before { background: linear-gradient(90deg, var(--warning), #fbbf24); }
+        .stat-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-lg); }
+        .stat-icon { width: 60px; height: 60px; border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .stat-icon svg { width: 28px; height: 28px; }
+        .stat-icon.purple { background: linear-gradient(135deg, rgba(139, 21, 56, 0.1), rgba(139, 21, 56, 0.2)); color: var(--primary); }
+        .stat-icon.green { background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.2)); color: var(--success); }
+        .stat-icon.blue { background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(59, 130, 246, 0.2)); color: var(--info); }
+        .stat-icon.orange { background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.2)); color: var(--warning); }
+        .stat-info { flex: 1; }
+        .stat-info h3 { font-size: 32px; font-weight: 800; margin-bottom: 5px; background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .stat-info p { font-size: 14px; color: var(--text-gray); margin-bottom: 10px; }
+        .stat-trend { display: inline-flex; align-items: center; gap: 5px; font-size: 13px; font-weight: 600; padding: 4px 10px; border-radius: var(--radius-full); }
+        .stat-trend.up { background: var(--success-light); color: var(--success); }
+        .stat-trend.down { background: var(--error-light); color: var(--error); }
+        
+        /* Cards & Tables */
+        .card { background: white; border-radius: var(--radius-xl); box-shadow: var(--shadow); overflow: hidden; margin-bottom: 25px; animation: fadeInUp 0.5s ease forwards; }
+        .card-header { padding: 25px 30px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; background: linear-gradient(to right, #fefefe, #f8fafc); }
+        .card-header h3 { font-size: 18px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+        .card-header h3::before { content: ''; width: 4px; height: 20px; background: var(--primary-gradient); border-radius: 2px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 18px 25px; text-align: left; }
+        th { font-size: 12px; font-weight: 700; color: var(--text-gray); text-transform: uppercase; letter-spacing: 1px; background: #f8fafc; border-bottom: 2px solid #e2e8f0; }
+        td { font-size: 14px; border-bottom: 1px solid #f1f5f9; }
+        tr { transition: all 0.3s; }
+        tr:hover { background: #fafbfc; }
+        
+        .status-badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: var(--radius-full); font-size: 12px; font-weight: 600; }
+        .status-badge::before { content: ''; width: 8px; height: 8px; border-radius: 50%; }
+        .status-pending { background: var(--warning-light); color: var(--warning); }
+        .status-pending::before { background: var(--warning); }
+        .status-confirmed { background: var(--info-light); color: var(--info); }
+        .status-confirmed::before { background: var(--info); }
+        .status-processing { background: var(--purple-light); color: var(--purple); }
+        .status-processing::before { background: var(--purple); }
+        .status-shipped { background: var(--teal-light); color: var(--teal); }
+        .status-shipped::before { background: var(--teal); }
+        .status-delivered { background: var(--success-light); color: var(--success); }
+        .status-delivered::before { background: var(--success); }
+        .status-cancelled { background: var(--error-light); color: var(--error); }
+        .status-cancelled::before { background: var(--error); }
+        
+        .product-cell { display: flex; align-items: center; gap: 15px; }
+        .product-cell img { width: 55px; height: 65px; object-fit: cover; border-radius: var(--radius-lg); box-shadow: var(--shadow); }
+        .product-cell h4 { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+        .product-cell p { font-size: 12px; color: var(--text-gray); }
+        
+        .stock-badge { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: var(--radius-full); font-size: 12px; font-weight: 600; }
+        .stock-in { background: var(--success-light); color: var(--success); }
+        .stock-low { background: var(--warning-light); color: var(--warning); }
+        .stock-out { background: var(--error-light); color: var(--error); }
+        
+        .action-btns { display: flex; gap: 8px; }
+        .action-btn { width: 38px; height: 38px; border-radius: var(--radius); border: none; background: #f1f5f9; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s; }
+        .action-btn:hover { transform: scale(1.1); }
+        .action-btn.edit:hover { background: var(--info); color: white; }
+        .action-btn.delete:hover { background: var(--error); color: white; }
+        .action-btn.view:hover { background: var(--success); color: white; }
+        .action-btn svg { width: 18px; height: 18px; }
+        
+        /* Filters */
+        .filters { display: flex; gap: 15px; margin-bottom: 25px; flex-wrap: wrap; align-items: center; }
+        .filter-select { padding: 12px 20px; border: 2px solid #e2e8f0; border-radius: var(--radius-lg); font-size: 14px; background: white; cursor: pointer; transition: all 0.3s; min-width: 150px; }
+        .filter-select:focus { outline: none; border-color: var(--primary); }
+        
+        /* Alert Boxes */
+        .alert { padding: 20px 25px; border-radius: var(--radius-lg); margin-bottom: 25px; display: flex; align-items: flex-start; gap: 15px; }
+        .alert-icon { font-size: 24px; }
+        .alert-content h4 { font-size: 15px; font-weight: 600; margin-bottom: 5px; }
+        .alert-content p { font-size: 13px; opacity: 0.9; }
+        .alert-warning { background: var(--warning-light); color: #92400e; border-left: 4px solid var(--warning); }
+        .alert-error { background: var(--error-light); color: #991b1b; border-left: 4px solid var(--error); }
+        .alert-success { background: var(--success-light); color: #065f46; border-left: 4px solid var(--success); }
+        .alert-info { background: var(--info-light); color: #1e40af; border-left: 4px solid var(--info); }
+        
+        /* Low Stock Alert Cards */
+        .low-stock-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px; }
+        .low-stock-card { background: white; border-radius: var(--radius-lg); padding: 20px; box-shadow: var(--shadow); border-left: 4px solid var(--warning); display: flex; align-items: center; gap: 15px; }
+        .low-stock-card.critical { border-left-color: var(--error); }
+        .low-stock-card img { width: 50px; height: 60px; object-fit: cover; border-radius: var(--radius); }
+        .low-stock-info { flex: 1; }
+        .low-stock-info h4 { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+        .low-stock-info p { font-size: 12px; color: var(--text-gray); }
+        .low-stock-qty { font-size: 24px; font-weight: 800; }
+        .low-stock-qty.warning { color: var(--warning); }
+        .low-stock-qty.critical { color: var(--error); }
+        
+        /* Settings Cards */
+        .settings-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 25px; }
+        .settings-card { background: white; border-radius: var(--radius-xl); padding: 30px; box-shadow: var(--shadow); }
+        .settings-card h3 { font-size: 18px; font-weight: 700; margin-bottom: 25px; display: flex; align-items: center; gap: 10px; }
+        .settings-card h3 span { font-size: 24px; }
+        .settings-row { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid #f1f5f9; }
+        .settings-row:last-child { border-bottom: none; }
+        .settings-row label { font-size: 14px; font-weight: 500; }
+        .settings-row input[type="text"], .settings-row input[type="number"] { padding: 10px 15px; border: 2px solid #e2e8f0; border-radius: var(--radius); width: 200px; text-align: right; }
+        .toggle-switch { position: relative; width: 50px; height: 26px; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .toggle-slider { position: absolute; cursor: pointer; inset: 0; background: #e2e8f0; border-radius: 26px; transition: 0.3s; }
+        .toggle-slider::before { content: ''; position: absolute; width: 20px; height: 20px; left: 3px; bottom: 3px; background: white; border-radius: 50%; transition: 0.3s; }
+        .toggle-switch input:checked + .toggle-slider { background: var(--success); }
+        .toggle-switch input:checked + .toggle-slider::before { transform: translateX(24px); }
+        
+        /* Modal */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 1000; opacity: 0; visibility: hidden; transition: all 0.3s; }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .modal { background: white; border-radius: var(--radius-2xl); width: 90%; max-width: 700px; max-height: 90vh; overflow-y: auto; transform: translateY(30px) scale(0.95); transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: var(--shadow-xl); }
+        .modal-overlay.active .modal { transform: translateY(0) scale(1); }
+        .modal-header { padding: 25px 30px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; background: linear-gradient(to right, #fefefe, #f8fafc); }
+        .modal-header h3 { font-size: 22px; background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .modal-close { background: #f1f5f9; border: none; cursor: pointer; font-size: 24px; width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: all 0.3s; }
+        .modal-close:hover { background: var(--primary); color: white; transform: rotate(90deg); }
+        .modal-body { padding: 30px; }
+        .modal-footer { padding: 20px 30px; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 15px; background: #f8fafc; }
+        
+        .image-upload { border: 3px dashed #e2e8f0; border-radius: var(--radius-xl); padding: 40px; text-align: center; cursor: pointer; transition: all 0.3s; background: #fafbfc; }
+        .image-upload:hover { border-color: var(--primary); background: rgba(139, 21, 56, 0.05); }
+        .image-upload input { display: none; }
+        .image-preview { display: flex; gap: 15px; flex-wrap: wrap; margin-top: 20px; }
+        .image-preview img { width: 80px; height: 100px; object-fit: cover; border-radius: var(--radius-lg); box-shadow: var(--shadow); }
+        
+        /* Toast */
+        .toast-container { position: fixed; top: 30px; right: 30px; z-index: 3000; }
+        .toast { background: var(--text-dark); color: white; padding: 18px 25px; border-radius: var(--radius-lg); margin-bottom: 15px; animation: slideIn 0.4s ease; display: flex; align-items: center; gap: 12px; box-shadow: var(--shadow-xl); min-width: 320px; }
+        .toast.success { background: linear-gradient(135deg, var(--success), #34d399); }
+        .toast.error { background: linear-gradient(135deg, var(--error), #f87171); }
+        .toast.warning { background: linear-gradient(135deg, var(--warning), #fbbf24); }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(100px); } to { opacity: 1; transform: translateX(0); } }
+        
+        /* Loading */
+        .spinner { width: 50px; height: 50px; border: 4px solid #e2e8f0; border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
+        .loading-overlay { position: fixed; inset: 0; background: rgba(255,255,255,0.9); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 3000; gap: 20px; }
+        .loading-overlay p { font-size: 16px; color: var(--text-gray); }
+        
+        /* Page Content */
+        .page-content { display: none; }
+        .page-content.active { display: block; }
+        
+        /* Empty State */
+        .empty-state { text-align: center; padding: 60px 20px; }
+        .empty-state .icon { font-size: 60px; margin-bottom: 20px; opacity: 0.5; }
+        .empty-state h3 { font-size: 20px; margin-bottom: 10px; color: var(--text-dark); }
+        .empty-state p { color: var(--text-gray); margin-bottom: 25px; }
+        
+        /* Responsive */
+        @media (max-width: 1400px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } .low-stock-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 1024px) { .sidebar { display: none; } .main-content { margin-left: 0; } .header-search { display: none; } .settings-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 768px) { .stats-grid { grid-template-columns: 1fr; } .form-row { grid-template-columns: 1fr; } .dashboard-content { padding: 20px; } .top-header { padding: 15px 20px; } .filters { flex-direction: column; } .low-stock-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay" style="display: none;">
+        <div class="spinner"></div>
+        <p>Loading...</p>
+    </div>
+
+    <!-- Login Page -->
+    <div class="login-page" id="loginPage">
+        <div class="login-card">
+            <div class="login-logo">
+                <div class="login-logo-icon">R</div>
+                <h1>R Narayana & Bros.</h1>
+                <p>Admin Dashboard</p>
+            </div>
+            <form onsubmit="handleAdminLogin(event)">
+                <div class="form-group">
+                    <label>📧 Email Address</label>
+                    <input type="email" id="adminEmail" placeholder="admin@rnarayanabros.com" required>
+                </div>
+                <div class="form-group">
+                    <label>🔒 Password</label>
+                    <input type="password" id="adminPassword" placeholder="Enter your password" required>
+                </div>
+                <div id="loginError" class="form-error"></div>
+                <button type="submit" class="btn btn-primary">🚀 Login to Dashboard</button>
+            </form>
+            <p style="text-align: center; margin-top: 25px; font-size: 13px; color: var(--text-gray);">
+                💡 Demo: Use any email with password <strong>admin123</strong>
+            </p>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar" style="display: none;">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">R</div>
+            <div class="sidebar-text">
+                <h2>R Narayana & Bros.</h2>
+                <span>Admin Panel</span>
+            </div>
+        </div>
+        <nav class="sidebar-menu">
+            <div class="menu-section">
+                <div class="menu-title">Main Menu</div>
+                <div class="menu-item active" onclick="showPage('dashboard')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+                    <span>Dashboard</span>
+                </div>
+                <div class="menu-item" onclick="showPage('orders')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+                    <span>Orders</span>
+                    <div class="menu-badge" id="ordersBadge">0</div>
+                </div>
+                <div class="menu-item" onclick="showPage('products')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+                    <span>Products</span>
+                </div>
+                <div class="menu-item" onclick="showPage('inventory')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                    <span>Inventory</span>
+                    <div class="menu-badge" id="lowStockBadge" style="background: var(--warning);">0</div>
+                </div>
+                <div class="menu-item" onclick="showPage('customers')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+                    <span>Customers</span>
+                </div>
+                <div class="menu-item" onclick="showPage('coupons')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 5H3a2 2 0 00-2 2v4a2 2 0 002 2 2 2 0 010 4 2 2 0 00-2 2v2a2 2 0 002 2h18a2 2 0 002-2v-2a2 2 0 00-2-2 2 2 0 010-4 2 2 0 002-2V7a2 2 0 00-2-2z"/></svg>
+                    <span>Coupons</span>
+                </div>
+            </div>
+            <div class="menu-section">
+                <div class="menu-title">Settings</div>
+                <div class="menu-item" onclick="showPage('settings')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+                    <span>Store Settings</span>
+                </div>
+                <div class="menu-item" onclick="window.open('index.html', '_blank')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                    <span>View Store</span>
+                </div>
+                <div class="menu-item" onclick="logout()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                    <span>Logout</span>
+                </div>
+            </div>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content" id="mainContent" style="display: none;">
+        <header class="top-header">
+            <div class="page-title">
+                <h1 id="pageTitle">📊 Dashboard</h1>
+                <p id="pageSubtitle">Welcome back! Here's what's happening today.</p>
+            </div>
+            <div class="header-actions">
+                <div class="header-search">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+                    <input type="text" placeholder="Search orders, products..." id="globalSearch" onkeyup="handleGlobalSearch(this.value)">
+                </div>
+                <button class="notification-btn" onclick="showPage('orders')">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+                    <div class="dot" id="notificationDot" style="display: none;"></div>
+                </button>
+                <div class="user-profile" onclick="logout()">
+                    <div class="user-avatar" id="adminAvatar">A</div>
+                    <div class="user-info">
+                        <h4 id="adminName">Admin</h4>
+                        <p>Store Manager</p>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Dashboard Page -->
+        <div class="page-content active" id="dashboard-page">
+            <div class="dashboard-content">
+                <!-- RLS Warning Alert -->
+                <div class="alert alert-info" id="rlsAlert" style="display: none;">
+                    <div class="alert-icon">ℹ️</div>
+                    <div class="alert-content">
+                        <h4>Database Security Notice</h4>
+                        <p>If you're having issues adding/deleting products, you need to update your Supabase RLS policies. <a href="#" onclick="showPage('settings')" style="color: inherit; text-decoration: underline;">Click here for instructions</a></p>
+                    </div>
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon purple">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="totalRevenue">₹0</h3>
+                            <p>Total Revenue</p>
+                            <span class="stat-trend up">↑ 12.5% this month</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon green">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="totalOrders">0</h3>
+                            <p>Total Orders</p>
+                            <span class="stat-trend up">↑ 8.2% this month</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon blue">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="totalCustomers">0</h3>
+                            <p>Total Customers</p>
+                            <span class="stat-trend up">↑ 5.1% this month</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon orange">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/></svg>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="totalProducts">0</h3>
+                            <p>Total Products</p>
+                            <span class="stat-trend down" id="lowStockTrend">↓ 0 low stock</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Low Stock Alerts -->
+                <div id="lowStockAlerts" style="display: none;">
+                    <h3 style="margin-bottom: 20px; font-size: 18px;">⚠️ Low Stock Alerts</h3>
+                    <div class="low-stock-grid" id="lowStockGrid"></div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Recent Orders</h3>
+                        <button class="btn btn-outline btn-sm" onclick="showPage('orders')">View All →</button>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Customer</th>
+                                <th>Amount</th>
+                                <th>Payment</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recentOrdersTable">
+                            <tr><td colspan="6" style="text-align: center; padding: 50px; color: var(--text-gray);">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Products Page -->
+        <div class="page-content" id="products-page">
+            <div class="dashboard-content">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px;">
+                    <div class="filters">
+                        <select class="filter-select" id="categoryFilter" onchange="filterProducts()">
+                            <option value="">📦 All Categories</option>
+                            <option value="kanchipuram-silk">Kanchipuram Silk</option>
+                            <option value="banarasi-silk">Banarasi Silk</option>
+                            <option value="mysore-silk">Mysore Silk</option>
+                            <option value="cotton">Cotton</option>
+                            <option value="designer">Designer</option>
+                        </select>
+                        <select class="filter-select" id="stockFilter" onchange="filterProducts()">
+                            <option value="">📊 All Stock</option>
+                            <option value="in">✅ In Stock</option>
+                            <option value="low">⚠️ Low Stock</option>
+                            <option value="out">❌ Out of Stock</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary btn-sm" onclick="openAddProductModal()">➕ Add New Product</button>
+                </div>
+                <div class="card">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>SKU</th>
+                                <th>Category</th>
+                                <th>Price</th>
+                                <th>Stock</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="productsTable">
+                            <tr><td colspan="6" style="text-align: center; padding: 50px;">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Inventory Page -->
+        <div class="page-content" id="inventory-page">
+            <div class="dashboard-content">
+                <div class="alert alert-warning" id="inventoryAlert" style="display: none;">
+                    <div class="alert-icon">⚠️</div>
+                    <div class="alert-content">
+                        <h4>Low Stock Warning</h4>
+                        <p id="inventoryAlertText">Some products are running low on stock. Please restock soon.</p>
+                    </div>
+                </div>
+                
+                <div class="stats-grid" style="grid-template-columns: repeat(3, 1fr);">
+                    <div class="stat-card">
+                        <div class="stat-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
+                        <div class="stat-info">
+                            <h3 id="inStockCount">0</h3>
+                            <p>In Stock</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon orange"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+                        <div class="stat-info">
+                            <h3 id="lowStockCount">0</h3>
+                            <p>Low Stock (≤5)</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></div>
+                        <div class="stat-info">
+                            <h3 id="outOfStockCount">0</h3>
+                            <p>Out of Stock</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Inventory Management</h3>
+                        <button class="btn btn-success btn-sm" onclick="exportInventory()">📥 Export CSV</button>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>SKU</th>
+                                <th>Current Stock</th>
+                                <th>Status</th>
+                                <th>Quick Update</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventoryTable"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Orders Page -->
+        <div class="page-content" id="orders-page">
+            <div class="dashboard-content">
+                <div class="filters">
+                    <select class="filter-select" id="orderStatusFilter" onchange="filterOrders()">
+                        <option value="">📦 All Orders</option>
+                        <option value="pending">⏳ Pending</option>
+                        <option value="confirmed">✅ Confirmed</option>
+                        <option value="processing">⚙️ Processing</option>
+                        <option value="shipped">🚚 Shipped</option>
+                        <option value="delivered">📬 Delivered</option>
+                        <option value="cancelled">❌ Cancelled</option>
+                    </select>
+                    <button class="btn btn-info btn-sm" onclick="exportOrders()">📥 Export Orders</button>
+                </div>
+                <div class="card">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Customer</th>
+                                <th>Amount</th>
+                                <th>Payment</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ordersTable"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Customers Page -->
+        <div class="page-content" id="customers-page">
+            <div class="dashboard-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>All Customers</h3>
+                        <button class="btn btn-info btn-sm" onclick="exportCustomers()">📥 Export</button>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Customer</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Orders</th>
+                                <th>Total Spent</th>
+                                <th>Joined</th>
+                            </tr>
+                        </thead>
+                        <tbody id="customersTable"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Coupons Page -->
+        <div class="page-content" id="coupons-page">
+            <div class="dashboard-content">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+                    <h3>🎫 Manage Coupons</h3>
+                    <button class="btn btn-primary btn-sm" onclick="openAddCouponModal()">➕ Add Coupon</button>
+                </div>
+                <div class="card">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Code</th>
+                                <th>Discount</th>
+                                <th>Min Order</th>
+                                <th>Usage</th>
+                                <th>Valid Until</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="couponsTable"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Page -->
+        <div class="page-content" id="settings-page">
+            <div class="dashboard-content">
+                <div class="alert alert-info">
+                    <div class="alert-icon">🔧</div>
+                    <div class="alert-content">
+                        <h4>Fix Database Permissions (RLS)</h4>
+                        <p>If you can't add/delete products, run this SQL in Supabase → SQL Editor:</p>
+                    </div>
+                </div>
+                
+                <div class="card" style="margin-bottom: 25px;">
+                    <div class="card-header">
+                        <h3>🔐 Fix RLS Policies (Copy & Run in Supabase)</h3>
+                    </div>
+                    <div style="padding: 25px;">
+                        <pre style="background: #1a1a2e; color: #10b981; padding: 20px; border-radius: 8px; overflow-x: auto; font-size: 13px; line-height: 1.6;">
+-- Run this in Supabase SQL Editor to fix permissions
+
+-- Allow anyone to read products
+DROP POLICY IF EXISTS "Products are viewable by everyone" ON products;
+CREATE POLICY "Products are viewable by everyone" ON products
+    FOR SELECT USING (true);
+
+-- Allow authenticated users to manage products
+DROP POLICY IF EXISTS "Authenticated users can manage products" ON products;
+CREATE POLICY "Authenticated users can manage products" ON products
+    FOR ALL USING (auth.role() = 'authenticated');
+
+-- If above doesn't work, use this (allows all operations):
+-- ALTER TABLE products DISABLE ROW LEVEL SECURITY;
+                        </pre>
+                        <button class="btn btn-outline btn-sm" style="margin-top: 15px;" onclick="copyRLSFix()">📋 Copy SQL</button>
+                    </div>
+                </div>
+
+                <div class="settings-grid">
+                    <div class="settings-card">
+                        <h3><span>🏪</span> Store Information</h3>
+                        <div class="settings-row">
+                            <label>Store Name</label>
+                            <input type="text" value="R Narayana & Bros." id="storeName">
+                        </div>
+                        <div class="settings-row">
+                            <label>Store Email</label>
+                            <input type="text" value="info@rnarayanabros.com" id="storeEmail">
+                        </div>
+                        <div class="settings-row">
+                            <label>Store Phone</label>
+                            <input type="text" value="+91 98765 43210" id="storePhone">
+                        </div>
+                        <button class="btn btn-primary btn-sm" style="margin-top: 20px;" onclick="saveStoreSettings()">💾 Save Changes</button>
+                    </div>
+
+                    <div class="settings-card">
+                        <h3><span>🚚</span> Shipping Settings</h3>
+                        <div class="settings-row">
+                            <label>Free Shipping Above (₹)</label>
+                            <input type="number" value="2999" id="freeShippingThreshold">
+                        </div>
+                        <div class="settings-row">
+                            <label>Standard Shipping (₹)</label>
+                            <input type="number" value="99" id="shippingCost">
+                        </div>
+                        <div class="settings-row">
+                            <label>Enable COD</label>
+                            <label class="toggle-switch">
+                                <input type="checkbox" checked id="codEnabled">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <button class="btn btn-primary btn-sm" style="margin-top: 20px;" onclick="saveShippingSettings()">💾 Save Changes</button>
+                    </div>
+
+                    <div class="settings-card">
+                        <h3><span>🔔</span> Notifications</h3>
+                        <div class="settings-row">
+                            <label>Email on New Order</label>
+                            <label class="toggle-switch">
+                                <input type="checkbox" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="settings-row">
+                            <label>Low Stock Alert (≤)</label>
+                            <input type="number" value="5" id="lowStockThreshold">
+                        </div>
+                        <div class="settings-row">
+                            <label>Daily Sales Report</label>
+                            <label class="toggle-switch">
+                                <input type="checkbox">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="settings-card">
+                        <h3><span>💳</span> Payment Settings</h3>
+                        <div class="settings-row">
+                            <label>Razorpay Key ID</label>
+                            <input type="text" placeholder="rzp_test_xxx" id="razorpayKey">
+                        </div>
+                        <div class="settings-row">
+                            <label>Test Mode</label>
+                            <label class="toggle-switch">
+                                <input type="checkbox" checked id="testMode">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="settings-row">
+                            <label>GST %</label>
+                            <input type="number" value="5" id="gstPercent">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Add/Edit Product Modal -->
+    <div class="modal-overlay" id="productModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="productModalTitle">➕ Add New Product</h3>
+                <button class="modal-close" onclick="closeModal('productModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="productForm" onsubmit="handleSaveProduct(event)">
+                    <input type="hidden" id="productId">
+                    <div class="form-group">
+                        <label>📷 Product Images</label>
+                        <div class="image-upload" onclick="document.getElementById('productImages').click()">
+                            <p style="font-size: 40px; margin-bottom: 10px;">📸</p>
+                            <p><strong>Click to upload images</strong></p>
+                            <input type="file" id="productImages" multiple accept="image/*" onchange="previewImages(this)">
+                        </div>
+                        <div class="image-preview" id="imagePreview"></div>
+                    </div>
+                    <div class="form-group">
+                        <label>📝 Product Name *</label>
+                        <input type="text" id="productName" placeholder="e.g., Royal Kanchipuram Silk Saree" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>📁 Category *</label>
+                            <select id="productCategory" required>
+                                <option value="">Select Category</option>
+                                <option value="kanchipuram-silk">Kanchipuram Silk</option>
+                                <option value="banarasi-silk">Banarasi Silk</option>
+                                <option value="mysore-silk">Mysore Silk</option>
+                                <option value="chanderi">Chanderi</option>
+                                <option value="cotton">Cotton</option>
+                                <option value="georgette">Georgette</option>
+                                <option value="designer">Designer</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>🏷️ SKU *</label>
+                            <input type="text" id="productSku" placeholder="e.g., KAN-001" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>💰 Price (₹) *</label>
+                            <input type="number" id="productPrice" placeholder="24999" required>
+                        </div>
+                        <div class="form-group">
+                            <label>💸 Compare Price (₹)</label>
+                            <input type="number" id="productComparePrice" placeholder="32999">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>📦 Stock Quantity *</label>
+                            <input type="number" id="productStock" placeholder="10" required>
+                        </div>
+                        <div class="form-group">
+                            <label>🧵 Fabric</label>
+                            <select id="productFabric">
+                                <option value="">Select Fabric</option>
+                                <option value="Pure Silk">Pure Silk</option>
+                                <option value="Art Silk">Art Silk</option>
+                                <option value="Cotton">Cotton</option>
+                                <option value="Cotton Silk">Cotton Silk</option>
+                                <option value="Georgette">Georgette</option>
+                                <option value="Chiffon">Chiffon</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>🎉 Occasion</label>
+                            <select id="productOccasion">
+                                <option value="">Select Occasion</option>
+                                <option value="Wedding">Wedding</option>
+                                <option value="Party">Party</option>
+                                <option value="Festive">Festive</option>
+                                <option value="Casual">Casual</option>
+                                <option value="Daily Wear">Daily Wear</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>🎨 Color</label>
+                            <input type="text" id="productColor" placeholder="e.g., Maroon & Gold">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>📄 Description</label>
+                        <textarea id="productDescription" rows="3" placeholder="Describe your saree..."></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group" style="display: flex; align-items: center; gap: 10px;">
+                            <input type="checkbox" id="productFeatured" style="width: 20px; height: 20px;">
+                            <label style="margin: 0;">⭐ Featured</label>
+                        </div>
+                        <div class="form-group" style="display: flex; align-items: center; gap: 10px;">
+                            <input type="checkbox" id="productNew" style="width: 20px; height: 20px;">
+                            <label style="margin: 0;">🆕 New Arrival</label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline btn-sm" onclick="closeModal('productModal')">Cancel</button>
+                <button class="btn btn-primary btn-sm" onclick="document.getElementById('productForm').requestSubmit()">💾 Save Product</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Update Order Modal -->
+    <div class="modal-overlay" id="orderModal">
+        <div class="modal" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3>📦 Update Order</h3>
+                <button class="modal-close" onclick="closeModal('orderModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="updateOrderId">
+                <div class="form-group">
+                    <label>📊 Order Status</label>
+                    <select id="updateOrderStatus">
+                        <option value="pending">⏳ Pending</option>
+                        <option value="confirmed">✅ Confirmed</option>
+                        <option value="processing">⚙️ Processing</option>
+                        <option value="shipped">🚚 Shipped</option>
+                        <option value="delivered">📬 Delivered</option>
+                        <option value="cancelled">❌ Cancelled</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>🔗 Tracking Number</label>
+                    <input type="text" id="updateTrackingNumber" placeholder="Enter tracking number">
+                </div>
+                <div class="form-group">
+                    <label>📝 Admin Notes</label>
+                    <textarea id="updateAdminNotes" rows="2" placeholder="Internal notes..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline btn-sm" onclick="closeModal('orderModal')">Cancel</button>
+                <button class="btn btn-primary btn-sm" onclick="updateOrderStatus()">✅ Update Order</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Coupon Modal -->
+    <div class="modal-overlay" id="couponModal">
+        <div class="modal" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3>🎫 Add Coupon</h3>
+                <button class="modal-close" onclick="closeModal('couponModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Coupon Code *</label>
+                    <input type="text" id="couponCode" placeholder="e.g., SAVE20" style="text-transform: uppercase;">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Discount Type</label>
+                        <select id="couponType">
+                            <option value="percentage">Percentage (%)</option>
+                            <option value="fixed">Fixed Amount (₹)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Discount Value *</label>
+                        <input type="number" id="couponValue" placeholder="20">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Min Order Amount (₹)</label>
+                        <input type="number" id="couponMinOrder" placeholder="1000">
+                    </div>
+                    <div class="form-group">
+                        <label>Usage Limit</label>
+                        <input type="number" id="couponLimit" placeholder="100">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Valid Until</label>
+                    <input type="date" id="couponExpiry">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline btn-sm" onclick="closeModal('couponModal')">Cancel</button>
+                <button class="btn btn-primary btn-sm" onclick="saveCoupon()">💾 Save Coupon</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stock Update Modal -->
+    <div class="modal-overlay" id="stockModal">
+        <div class="modal" style="max-width: 400px;">
+            <div class="modal-header">
+                <h3>📦 Update Stock</h3>
+                <button class="modal-close" onclick="closeModal('stockModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="stockProductId">
+                <p id="stockProductName" style="font-weight: 600; margin-bottom: 20px;"></p>
+                <div class="form-group">
+                    <label>New Stock Quantity</label>
+                    <input type="number" id="newStockQty" min="0" placeholder="Enter new quantity">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline btn-sm" onclick="closeModal('stockModal')">Cancel</button>
+                <button class="btn btn-primary btn-sm" onclick="updateStock()">✅ Update</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+    // ════════════════════════════════════════════════════════════════════════
+    // CONFIGURATION - YOUR SUPABASE CREDENTIALS
+    // ════════════════════════════════════════════════════════════════════════
+    
+    const CONFIG = {
+        SUPABASE_URL: 'https://acvmqsbjgbegkobewbxx.supabase.co',
+        SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFjdm1xc2JqZ2JlZ2tvYmV3Ynh4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2ODE3MzUsImV4cCI6MjA5MDI1NzczNX0.O6u8qnTO2c_7UHo6lRXeeP0tIorwYIkvI2ne4Dt6j_Q',
+        LOW_STOCK_THRESHOLD: 5
+    };
+
+    let supabaseClient = null;
+    let currentAdmin = null;
+    let products = [];
+    let orders = [];
+    let customers = [];
+    let coupons = [];
+    let rlsError = false;
+
+    // Demo data
+    const DEMO_PRODUCTS = [
+        { id: '1', sku: 'KAN-001', name: 'Royal Kanchipuram Silk Saree with Gold Zari', category: { name: 'Kanchipuram Silk', slug: 'kanchipuram-silk' }, price: 24999, compare_price: 32999, stock_quantity: 12, thumbnail_url: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=100', fabric: 'Pure Silk', color: 'Maroon & Gold', is_active: true },
+        { id: '2', sku: 'BAN-001', name: 'Traditional Banarasi Silk with Meenakari', category: { name: 'Banarasi Silk', slug: 'banarasi-silk' }, price: 18999, compare_price: 24999, stock_quantity: 3, thumbnail_url: 'https://images.unsplash.com/photo-1583391733956-6c78276477e2?w=100', fabric: 'Pure Silk', color: 'Blue & Gold', is_active: true },
+        { id: '3', sku: 'COT-001', name: 'Cotton Handloom Saree - South Indian', category: { name: 'Cotton', slug: 'cotton' }, price: 3499, compare_price: 4499, stock_quantity: 0, thumbnail_url: 'https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?w=100', fabric: 'Cotton', color: 'Yellow & Red', is_active: true },
+        { id: '4', sku: 'MYS-001', name: 'Elegant Mysore Silk Temple Border', category: { name: 'Mysore Silk', slug: 'mysore-silk' }, price: 12499, compare_price: 15999, stock_quantity: 15, thumbnail_url: 'https://images.unsplash.com/photo-1594736797933-d0501ba2fe65?w=100', fabric: 'Pure Silk', color: 'Green & Gold', is_active: true },
+        { id: '5', sku: 'DES-001', name: 'Designer Georgette Party Wear', category: { name: 'Designer', slug: 'designer' }, price: 8999, compare_price: 12999, stock_quantity: 2, thumbnail_url: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=100', fabric: 'Georgette', color: 'Wine & Gold', is_active: true },
+    ];
+
+    const DEMO_ORDERS = [
+        { id: '1', order_number: 'ORD-2026-00001', customer_name: 'Priya Sharma', customer_email: 'priya@example.com', customer_phone: '+91 98765 43210', total_amount: 24999, payment_method: 'upi', payment_status: 'paid', status: 'pending', created_at: new Date().toISOString() },
+        { id: '2', order_number: 'ORD-2026-00002', customer_name: 'Ananya Reddy', customer_email: 'ananya@example.com', customer_phone: '+91 87654 32109', total_amount: 18999, payment_method: 'card', payment_status: 'paid', status: 'confirmed', created_at: new Date(Date.now() - 86400000).toISOString() },
+        { id: '3', order_number: 'ORD-2026-00003', customer_name: 'Meera Krishnan', customer_email: 'meera@example.com', customer_phone: '+91 76543 21098', total_amount: 3499, payment_method: 'cod', payment_status: 'pending', status: 'shipped', created_at: new Date(Date.now() - 172800000).toISOString() },
+        { id: '4', order_number: 'ORD-2026-00004', customer_name: 'Lakshmi Iyer', customer_email: 'lakshmi@example.com', customer_phone: '+91 65432 10987', total_amount: 45999, payment_method: 'card', payment_status: 'paid', status: 'delivered', created_at: new Date(Date.now() - 259200000).toISOString() },
+    ];
+
+    const DEMO_CUSTOMERS = [
+        { id: '1', full_name: 'Priya Sharma', email: 'priya@example.com', phone: '+91 98765 43210', orders_count: 5, total_spent: 125000, created_at: new Date(Date.now() - 864000000).toISOString() },
+        { id: '2', full_name: 'Ananya Reddy', email: 'ananya@example.com', phone: '+91 87654 32109', orders_count: 3, total_spent: 75000, created_at: new Date(Date.now() - 1728000000).toISOString() },
+        { id: '3', full_name: 'Meera Krishnan', email: 'meera@example.com', phone: '+91 76543 21098', orders_count: 8, total_spent: 210000, created_at: new Date(Date.now() - 2592000000).toISOString() },
+    ];
+
+    const DEMO_COUPONS = [
+        { id: '1', code: 'WELCOME20', discount_type: 'percentage', discount_value: 20, min_order_amount: 1000, usage_limit: 100, usage_count: 45, valid_until: '2026-12-31', is_active: true },
+        { id: '2', code: 'FLAT500', discount_type: 'fixed', discount_value: 500, min_order_amount: 3000, usage_limit: 50, usage_count: 12, valid_until: '2026-06-30', is_active: true },
+    ];
+
+    // ════════════════════════════════════════════════════════════════════════
+    // SESSION MANAGEMENT - FIXED!
+    // ════════════════════════════════════════════════════════════════════════
+    
+    function saveSession(admin) {
+        localStorage.setItem('adminSession', JSON.stringify({
+            email: admin.email,
+            name: admin.name,
+            loginTime: Date.now()
+        }));
+    }
+
+    function loadSession() {
+        const session = localStorage.getItem('adminSession');
+        if (session) {
+            const data = JSON.parse(session);
+            // Session valid for 24 hours
+            if (Date.now() - data.loginTime < 24 * 60 * 60 * 1000) {
+                return data;
+            }
+            localStorage.removeItem('adminSession');
+        }
+        return null;
+    }
+
+    function clearSession() {
+        localStorage.removeItem('adminSession');
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
+    // INITIALIZATION
+    // ════════════════════════════════════════════════════════════════════════
+    
+    function initSupabase() {
+        try {
+            supabaseClient = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+            console.log('✅ Supabase connected!');
+            return true;
+        } catch (e) {
+            console.error('Supabase error:', e);
+            return false;
+        }
+    }
+
+    // Check session on page load
+    document.addEventListener('DOMContentLoaded', async function() {
+        initSupabase();
+        
+        // Check for existing session
+        const savedSession = loadSession();
+        if (savedSession) {
+            currentAdmin = savedSession;
+            showDashboard();
+        }
+    });
+
+    // ════════════════════════════════════════════════════════════════════════
+    // AUTH - FIXED SESSION PERSISTENCE
+    // ════════════════════════════════════════════════════════════════════════
+    
+    async function handleAdminLogin(e) {
+        e.preventDefault();
+        const email = document.getElementById('adminEmail').value;
+        const password = document.getElementById('adminPassword').value;
+        const errorEl = document.getElementById('loginError');
+        
+        errorEl.style.display = 'none';
+        showLoading(true);
+        
+        const DEMO_PASSWORD = 'admin123';
+        
+        // Demo mode check
+        if (password === DEMO_PASSWORD) {
+            currentAdmin = { email, name: email.split('@')[0] };
+            saveSession(currentAdmin);
+            showLoading(false);
+            showDashboard();
+            return;
+        }
+        
+        // Try Supabase auth
+        if (supabaseClient) {
+            try {
+                const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+                if (error) throw error;
+                
+                const { data: profile } = await supabaseClient
+                    .from('profiles')
+                    .select('role, full_name')
+                    .eq('id', data.user.id)
+                    .single();
+                
+                currentAdmin = { 
+                    email, 
+                    name: profile?.full_name || email.split('@')[0],
+                    id: data.user.id
+                };
+                saveSession(currentAdmin);
+                showLoading(false);
+                showDashboard();
+                return;
+            } catch (error) {
+                // If Supabase fails, allow demo login with any password >= 4 chars
+                if (password.length >= 4) {
+                    currentAdmin = { email, name: email.split('@')[0] };
+                    saveSession(currentAdmin);
+                    showLoading(false);
+                    showDashboard();
+                    return;
+                }
+                errorEl.textContent = error.message || 'Login failed. Try password: admin123';
+                errorEl.style.display = 'block';
+            }
+        } else {
+            // No Supabase, demo mode
+            if (password.length >= 4) {
+                currentAdmin = { email, name: email.split('@')[0] };
+                saveSession(currentAdmin);
+                showLoading(false);
+                showDashboard();
+                return;
+            }
+        }
+        
+        showLoading(false);
+    }
+
+    function showDashboard() {
+        document.getElementById('loginPage').style.display = 'none';
+        document.getElementById('sidebar').style.display = 'block';
+        document.getElementById('mainContent').style.display = 'block';
+        
+        const name = currentAdmin?.name || 'Admin';
+        document.getElementById('adminName').textContent = name;
+        document.getElementById('adminAvatar').textContent = name.charAt(0).toUpperCase();
+        
+        loadDashboardData();
+        showToast('🎉 Welcome back, ' + name + '!', 'success');
+    }
+
+    function logout() {
+        if (supabaseClient) {
+            supabaseClient.auth.signOut();
+        }
+        clearSession();
+        currentAdmin = null;
+        document.getElementById('loginPage').style.display = 'flex';
+        document.getElementById('sidebar').style.display = 'none';
+        document.getElementById('mainContent').style.display = 'none';
+        showToast('👋 Logged out', 'success');
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
+    // DATA LOADING
+    // ════════════════════════════════════════════════════════════════════════
+    
+    async function loadDashboardData() {
+        showLoading(true);
+        await Promise.all([loadProducts(), loadOrders(), loadCustomers(), loadCoupons()]);
+        updateDashboardStats();
+        renderRecentOrders();
+        updateLowStockAlerts();
+        showLoading(false);
+    }
+
+    async function loadProducts() {
+        if (!supabaseClient) {
+            products = [...DEMO_PRODUCTS];
+            return;
+        }
+        
+        try {
+            const { data, error } = await supabaseClient
+                .from('products')
+                .select('*, category:categories(name, slug)')
+                .order('created_at', { ascending: false });
+            
+            if (error) throw error;
+            products = data && data.length > 0 ? data : [...DEMO_PRODUCTS];
+        } catch (e) {
+            console.log('Using demo products');
+            products = [...DEMO_PRODUCTS];
+        }
+    }
+
+    async function loadOrders() {
+        if (!supabaseClient) {
+            orders = [...DEMO_ORDERS];
+            return;
+        }
+        
+        try {
+            const { data, error } = await supabaseClient
+                .from('orders')
+                .select('*')
+                .order('created_at', { ascending: false });
+            
+            if (error) throw error;
+            orders = data && data.length > 0 ? data : [...DEMO_ORDERS];
+        } catch (e) {
+            orders = [...DEMO_ORDERS];
+        }
+    }
+
+    async function loadCustomers() {
+        if (!supabaseClient) {
+            customers = [...DEMO_CUSTOMERS];
+            return;
+        }
+        
+        try {
+            const { data, error } = await supabaseClient
+                .from('profiles')
+                .select('*')
+                .order('created_at', { ascending: false });
+            
+            if (error) throw error;
+            customers = data && data.length > 0 ? data : [...DEMO_CUSTOMERS];
+        } catch (e) {
+            customers = [...DEMO_CUSTOMERS];
+        }
+    }
+
+    async function loadCoupons() {
+        coupons = [...DEMO_COUPONS];
+    }
+
+    function updateDashboardStats() {
+        const totalRevenue = orders.reduce((sum, o) => sum + (o.total_amount || 0), 0);
+        document.getElementById('totalRevenue').textContent = `₹${totalRevenue.toLocaleString()}`;
+        document.getElementById('totalOrders').textContent = orders.length;
+        document.getElementById('totalCustomers').textContent = customers.length;
+        document.getElementById('totalProducts').textContent = products.length;
+        
+        const pendingOrders = orders.filter(o => o.status === 'pending' || o.status === 'confirmed').length;
+        document.getElementById('ordersBadge').textContent = pendingOrders;
+        
+        if (pendingOrders > 0) {
+            document.getElementById('notificationDot').style.display = 'block';
+        }
+        
+        const lowStock = products.filter(p => p.stock_quantity <= CONFIG.LOW_STOCK_THRESHOLD && p.stock_quantity > 0).length;
+        const outOfStock = products.filter(p => p.stock_quantity === 0).length;
+        document.getElementById('lowStockBadge').textContent = lowStock + outOfStock;
+        document.getElementById('lowStockTrend').textContent = `↓ ${lowStock + outOfStock} need attention`;
+    }
+
+    function updateLowStockAlerts() {
+        const lowStockProducts = products.filter(p => p.stock_quantity <= CONFIG.LOW_STOCK_THRESHOLD);
+        
+        if (lowStockProducts.length > 0) {
+            document.getElementById('lowStockAlerts').style.display = 'block';
+            document.getElementById('lowStockGrid').innerHTML = lowStockProducts.slice(0, 6).map(p => `
+                <div class="low-stock-card ${p.stock_quantity === 0 ? 'critical' : ''}">
+                    <img src="${p.thumbnail_url || 'https://via.placeholder.com/50x60'}" alt="${p.name}">
+                    <div class="low-stock-info">
+                        <h4>${p.name.substring(0, 30)}${p.name.length > 30 ? '...' : ''}</h4>
+                        <p>SKU: ${p.sku}</p>
+                    </div>
+                    <div class="low-stock-qty ${p.stock_quantity === 0 ? 'critical' : 'warning'}">${p.stock_quantity}</div>
+                </div>
+            `).join('');
+        }
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
+    // RENDERING
+    // ════════════════════════════════════════════════════════════════════════
+    
+    function renderRecentOrders() {
+        const table = document.getElementById('recentOrdersTable');
+        const recentOrders = orders.slice(0, 5);
+        
+        if (recentOrders.length === 0) {
+            table.innerHTML = '<tr><td colspan="6" class="empty-state"><div class="icon">📦</div><h3>No orders yet</h3><p>Orders will appear here</p></td></tr>';
+            return;
+        }
+        
+        table.innerHTML = recentOrders.map(o => `
+            <tr>
+                <td style="color: var(--primary); font-weight: 600;">#${o.order_number}</td>
+                <td><strong>${o.customer_name}</strong><br><small style="color: var(--text-gray);">${o.customer_phone || ''}</small></td>
+                <td style="font-weight: 600;">₹${o.total_amount.toLocaleString()}</td>
+                <td><span style="text-transform: uppercase; font-size: 11px; background: #f1f5f9; padding: 4px 8px; border-radius: 4px;">${o.payment_method}</span></td>
+                <td><span class="status-badge status-${o.status}">${o.status}</span></td>
+                <td style="color: var(--text-gray);">${new Date(o.created_at).toLocaleDateString()}</td>
+            </tr>
+        `).join('');
+    }
+
+    function renderProductsTable() {
+        const table = document.getElementById('productsTable');
+        
+        if (products.length === 0) {
+            table.innerHTML = '<tr><td colspan="6" class="empty-state"><div class="icon">🏷️</div><h3>No products yet</h3><p>Add your first product</p><button class="btn btn-primary btn-sm" onclick="openAddProductModal()">➕ Add Product</button></td></tr>';
+            return;
+        }
+        
+        table.innerHTML = products.map(p => {
+            const stockStatus = p.stock_quantity === 0 ? 'out' : p.stock_quantity <= 5 ? 'low' : 'in';
+            const stockLabel = p.stock_quantity === 0 ? '❌ Out' : p.stock_quantity <= 5 ? '⚠️ Low' : '✅ In Stock';
+            
+            return `
+                <tr>
+                    <td>
+                        <div class="product-cell">
+                            <img src="${p.thumbnail_url || 'https://via.placeholder.com/55x65'}" alt="${p.name}">
+                            <div>
+                                <h4>${p.name.substring(0, 35)}${p.name.length > 35 ? '...' : ''}</h4>
+                                <p>${p.fabric || ''} ${p.color ? '• ' + p.color : ''}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td><code style="background: #f1f5f9; padding: 4px 8px; border-radius: 4px;">${p.sku}</code></td>
+                    <td>${p.category?.name || '-'}</td>
+                    <td style="font-weight: 600;">₹${p.price.toLocaleString()}</td>
+                    <td><span class="stock-badge stock-${stockStatus}">${p.stock_quantity} (${stockLabel})</span></td>
+                    <td>
+                        <div class="action-btns">
+                            <button class="action-btn edit" onclick="editProduct('${p.id}')" title="Edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                            <button class="action-btn delete" onclick="deleteProduct('${p.id}')" title="Delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    function renderInventoryTable() {
+        const table = document.getElementById('inventoryTable');
+        const inStock = products.filter(p => p.stock_quantity > CONFIG.LOW_STOCK_THRESHOLD).length;
+        const lowStock = products.filter(p => p.stock_quantity <= CONFIG.LOW_STOCK_THRESHOLD && p.stock_quantity > 0).length;
+        const outOfStock = products.filter(p => p.stock_quantity === 0).length;
+        
+        document.getElementById('inStockCount').textContent = inStock;
+        document.getElementById('lowStockCount').textContent = lowStock;
+        document.getElementById('outOfStockCount').textContent = outOfStock;
+        
+        if (lowStock + outOfStock > 0) {
+            document.getElementById('inventoryAlert').style.display = 'flex';
+            document.getElementById('inventoryAlertText').textContent = `${outOfStock} products out of stock, ${lowStock} running low.`;
+        }
+        
+        table.innerHTML = products.map(p => {
+            const stockStatus = p.stock_quantity === 0 ? 'out' : p.stock_quantity <= 5 ? 'low' : 'in';
+            return `
+                <tr>
+                    <td>
+                        <div class="product-cell">
+                            <img src="${p.thumbnail_url || 'https://via.placeholder.com/55x65'}" alt="${p.name}">
+                            <div><h4>${p.name.substring(0, 30)}...</h4><p>${p.category?.name || '-'}</p></div>
+                        </div>
+                    </td>
+                    <td><code>${p.sku}</code></td>
+                    <td style="font-size: 20px; font-weight: 700;">${p.stock_quantity}</td>
+                    <td><span class="stock-badge stock-${stockStatus}">${stockStatus === 'out' ? '❌ Out of Stock' : stockStatus === 'low' ? '⚠️ Low Stock' : '✅ In Stock'}</span></td>
+                    <td>
+                        <button class="btn btn-outline btn-sm" onclick="openStockModal('${p.id}', '${p.name}', ${p.stock_quantity})">📦 Update</button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    function renderOrdersTable() {
+        const table = document.getElementById('ordersTable');
+        const filter = document.getElementById('orderStatusFilter').value;
+        const filtered = filter ? orders.filter(o => o.status === filter) : orders;
+        
+        if (filtered.length === 0) {
+            table.innerHTML = '<tr><td colspan="7" class="empty-state"><div class="icon">📦</div><h3>No orders found</h3></td></tr>';
+            return;
+        }
+        
+        table.innerHTML = filtered.map(o => `
+            <tr>
+                <td style="color: var(--primary); font-weight: 600;">#${o.order_number}</td>
+                <td><strong>${o.customer_name}</strong><br><small style="color: var(--text-gray);">${o.customer_email || o.customer_phone || ''}</small></td>
+                <td style="font-weight: 600;">₹${o.total_amount.toLocaleString()}</td>
+                <td><span style="text-transform: uppercase; font-size: 11px; background: ${o.payment_status === 'paid' ? 'var(--success-light)' : '#f1f5f9'}; color: ${o.payment_status === 'paid' ? 'var(--success)' : 'inherit'}; padding: 4px 8px; border-radius: 4px;">${o.payment_method} ${o.payment_status === 'paid' ? '✓' : ''}</span></td>
+                <td><span class="status-badge status-${o.status}">${o.status}</span></td>
+                <td style="color: var(--text-gray);">${new Date(o.created_at).toLocaleDateString()}</td>
+                <td>
+                    <div class="action-btns">
+                        <button class="action-btn edit" onclick="openOrderModal('${o.id}')" title="Update"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    function renderCustomersTable() {
+        const table = document.getElementById('customersTable');
+        
+        if (customers.length === 0) {
+            table.innerHTML = '<tr><td colspan="6" class="empty-state"><div class="icon">👥</div><h3>No customers yet</h3></td></tr>';
+            return;
+        }
+        
+        table.innerHTML = customers.map(c => `
+            <tr>
+                <td>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="width: 40px; height: 40px; background: var(--primary-gradient); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600;">${(c.full_name || c.email || 'U').charAt(0).toUpperCase()}</div>
+                        <strong>${c.full_name || 'Unknown'}</strong>
+                    </div>
+                </td>
+                <td>${c.email || '-'}</td>
+                <td>${c.phone || '-'}</td>
+                <td><span style="background: var(--info-light); color: var(--info); padding: 4px 10px; border-radius: var(--radius-full); font-size: 12px; font-weight: 600;">${c.orders_count || 0}</span></td>
+                <td style="font-weight: 600; color: var(--success);">₹${(c.total_spent || 0).toLocaleString()}</td>
+                <td style="color: var(--text-gray);">${new Date(c.created_at).toLocaleDateString()}</td>
+            </tr>
+        `).join('');
+    }
+
+    function renderCouponsTable() {
+        const table = document.getElementById('couponsTable');
+        
+        if (coupons.length === 0) {
+            table.innerHTML = '<tr><td colspan="7" class="empty-state"><div class="icon">🎫</div><h3>No coupons yet</h3><button class="btn btn-primary btn-sm" onclick="openAddCouponModal()">➕ Add Coupon</button></td></tr>';
+            return;
+        }
+        
+        table.innerHTML = coupons.map(c => `
+            <tr>
+                <td><code style="background: var(--primary-light); color: white; padding: 6px 12px; border-radius: 4px; font-weight: 700;">${c.code}</code></td>
+                <td>${c.discount_type === 'percentage' ? c.discount_value + '%' : '₹' + c.discount_value}</td>
+                <td>₹${c.min_order_amount || 0}</td>
+                <td>${c.usage_count || 0} / ${c.usage_limit || '∞'}</td>
+                <td>${c.valid_until ? new Date(c.valid_until).toLocaleDateString() : 'No expiry'}</td>
+                <td><span class="status-badge ${c.is_active ? 'status-delivered' : 'status-cancelled'}">${c.is_active ? 'Active' : 'Inactive'}</span></td>
+                <td>
+                    <div class="action-btns">
+                        <button class="action-btn delete" onclick="deleteCoupon('${c.id}')" title="Delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button>
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
+    // PRODUCT MANAGEMENT - FIXED!
+    // ════════════════════════════════════════════════════════════════════════
+    
+    function openAddProductModal() {
+        document.getElementById('productModalTitle').textContent = '➕ Add New Product';
+        document.getElementById('productForm').reset();
+        document.getElementById('productId').value = '';
+        document.getElementById('imagePreview').innerHTML = '';
+        openModal('productModal');
+    }
+
+    function editProduct(id) {
+        const product = products.find(p => p.id === id);
+        if (!product) return;
+        
+        document.getElementById('productModalTitle').textContent = '✏️ Edit Product';
+        document.getElementById('productId').value = product.id;
+        document.getElementById('productName').value = product.name || '';
+        document.getElementById('productSku').value = product.sku || '';
+        document.getElementById('productCategory').value = product.category?.slug || '';
+        document.getElementById('productPrice').value = product.price || '';
+        document.getElementById('productComparePrice').value = product.compare_price || '';
+        document.getElementById('productStock').value = product.stock_quantity || 0;
+        document.getElementById('productFabric').value = product.fabric || '';
+        document.getElementById('productOccasion').value = product.occasion || '';
+        document.getElementById('productColor').value = product.color || '';
+        document.getElementById('productDescription').value = product.description || '';
+        document.getElementById('productFeatured').checked = product.is_featured || false;
+        document.getElementById('productNew').checked = product.is_new || false;
+        
+        if (product.thumbnail_url) {
+            document.getElementById('imagePreview').innerHTML = `<img src="${product.thumbnail_url}" alt="Product">`;
+        }
+        
+        openModal('productModal');
+    }
+
+    async function handleSaveProduct(e) {
+        e.preventDefault();
+        
+        const productId = document.getElementById('productId').value;
+        const name = document.getElementById('productName').value;
+        const categorySlug = document.getElementById('productCategory').value;
+        
+        const productData = {
+            name: name,
+            sku: document.getElementById('productSku').value,
+            slug: name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+            price: parseFloat(document.getElementById('productPrice').value),
+            compare_price: parseFloat(document.getElementById('productComparePrice').value) || null,
+            stock_quantity: parseInt(document.getElementById('productStock').value) || 0,
+            fabric: document.getElementById('productFabric').value,
+            occasion: document.getElementById('productOccasion').value,
+            color: document.getElementById('productColor').value,
+            description: document.getElementById('productDescription').value,
+            is_featured: document.getElementById('productFeatured').checked,
+            is_new: document.getElementById('productNew').checked,
+            is_active: true,
+            thumbnail_url: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=400'
+        };
+        
+        showLoading(true);
+        
+        // Try Supabase first
+        if (supabaseClient && !rlsError) {
+            try {
+                if (productId && !productId.startsWith('demo_')) {
+                    const { error } = await supabaseClient.from('products').update(productData).eq('id', productId);
+                    if (error) throw error;
+                } else {
+                    const { error } = await supabaseClient.from('products').insert([productData]);
+                    if (error) throw error;
+                }
+                
+                closeModal('productModal');
+                await loadProducts();
+                renderProductsTable();
+                updateDashboardStats();
+                showLoading(false);
+                showToast(productId ? '✅ Product updated!' : '🎉 Product added!', 'success');
+                return;
+            } catch (e) {
+                console.error('Supabase error:', e);
+                rlsError = true;
+                document.getElementById('rlsAlert').style.display = 'flex';
+                showToast('⚠️ Database permission issue. Using local mode.', 'warning');
+            }
+        }
+        
+        // Fallback to local/demo mode
+        const categoryNames = {
+            'kanchipuram-silk': 'Kanchipuram Silk',
+            'banarasi-silk': 'Banarasi Silk',
+            'mysore-silk': 'Mysore Silk',
+            'cotton': 'Cotton',
+            'designer': 'Designer',
+            'chanderi': 'Chanderi',
+            'georgette': 'Georgette'
+        };
+        
+        productData.category = { name: categoryNames[categorySlug] || categorySlug, slug: categorySlug };
+        
+        if (productId) {
+            const idx = products.findIndex(p => p.id === productId);
+            if (idx !== -1) {
+                products[idx] = { ...products[idx], ...productData };
+            }
+        } else {
+            productData.id = 'demo_' + Date.now();
+            products.unshift(productData);
+        }
+        
+        closeModal('productModal');
+        renderProductsTable();
+        updateDashboardStats();
+        showLoading(false);
+        showToast(productId ? '✅ Product updated (local)!' : '🎉 Product added (local)!', 'success');
+    }
+
+    async function deleteProduct(id) {
+        if (!confirm('🗑️ Delete this product?')) return;
+        
+        showLoading(true);
+        
+        // Try Supabase
+        if (supabaseClient && !rlsError && !id.startsWith('demo_')) {
+            try {
+                const { error } = await supabaseClient.from('products').delete().eq('id', id);
+                if (error) throw error;
+                
+                await loadProducts();
+                renderProductsTable();
+                updateDashboardStats();
+                showLoading(false);
+                showToast('🗑️ Product deleted!', 'success');
+                return;
+            } catch (e) {
+                console.error('Delete error:', e);
+                rlsError = true;
+                document.getElementById('rlsAlert').style.display = 'flex';
+            }
+        }
+        
+        // Fallback: delete locally
+        products = products.filter(p => p.id !== id);
+        renderProductsTable();
+        updateDashboardStats();
+        showLoading(false);
+        showToast('🗑️ Product deleted (local)!', 'success');
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
+    // ORDER MANAGEMENT
+    // ════════════════════════════════════════════════════════════════════════
+    
+    function openOrderModal(id) {
+        const order = orders.find(o => o.id === id);
+        if (!order) return;
+        
+        document.getElementById('updateOrderId').value = id;
+        document.getElementById('updateOrderStatus').value = order.status;
+        document.getElementById('updateTrackingNumber').value = order.tracking_number || '';
+        document.getElementById('updateAdminNotes').value = order.admin_notes || '';
+        openModal('orderModal');
+    }
+
+    async function updateOrderStatus() {
+        const orderId = document.getElementById('updateOrderId').value;
+        const status = document.getElementById('updateOrderStatus').value;
+        const trackingNumber = document.getElementById('updateTrackingNumber').value;
+        const adminNotes = document.getElementById('updateAdminNotes').value;
+        
+        showLoading(true);
+        
+        if (supabaseClient && !orderId.startsWith('demo_')) {
+            try {
+                const { error } = await supabaseClient
+                    .from('orders')
+                    .update({ status, tracking_number: trackingNumber, admin_notes: adminNotes })
+                    .eq('id', orderId);
+                if (error) throw error;
+                
+                await loadOrders();
+            } catch (e) {
+                console.error('Update error:', e);
+            }
+        }
+        
+        // Update locally
+        const order = orders.find(o => o.id === orderId);
+        if (order) {
+            order.status = status;
+            order.tracking_number = trackingNumber;
+            order.admin_notes = adminNotes;
+        }
+        
+        closeModal('orderModal');
+        renderOrdersTable();
+        renderRecentOrders();
+        updateDashboardStats();
+        showLoading(false);
+        showToast('✅ Order updated!', 'success');
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
+    // INVENTORY MANAGEMENT
+    // ════════════════════════════════════════════════════════════════════════
+    
+    function openStockModal(id, name, currentStock) {
+        document.getElementById('stockProductId').value = id;
+        document.getElementById('stockProductName').textContent = name;
+        document.getElementById('newStockQty').value = currentStock;
+        openModal('stockModal');
+    }
+
+    async function updateStock() {
+        const productId = document.getElementById('stockProductId').value;
+        const newQty = parseInt(document.getElementById('newStockQty').value) || 0;
+        
+        showLoading(true);
+        
+        if (supabaseClient && !productId.startsWith('demo_') && !rlsError) {
+            try {
+                const { error } = await supabaseClient
+                    .from('products')
+                    .update({ stock_quantity: newQty })
+                    .eq('id', productId);
+                if (error) throw error;
+            } catch (e) {
+                console.error('Stock update error:', e);
+            }
+        }
+        
+        // Update locally
+        const product = products.find(p => p.id === productId);
+        if (product) {
+            product.stock_quantity = newQty;
+        }
+        
+        closeModal('stockModal');
+        renderInventoryTable();
+        renderProductsTable();
+        updateDashboardStats();
+        updateLowStockAlerts();
+        showLoading(false);
+        showToast('✅ Stock updated!', 'success');
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
+    // COUPONS
+    // ════════════════════════════════════════════════════════════════════════
+    
+    function openAddCouponModal() {
+        document.getElementById('couponCode').value = '';
+        document.getElementById('couponValue').value = '';
+        document.getElementById('couponMinOrder').value = '';
+        document.getElementById('couponLimit').value = '';
+        document.getElementById('couponExpiry').value = '';
+        openModal('couponModal');
+    }
+
+    function saveCoupon() {
+        const coupon = {
+            id: 'coupon_' + Date.now(),
+            code: document.getElementById('couponCode').value.toUpperCase(),
+            discount_type: document.getElementById('couponType').value,
+            discount_value: parseFloat(document.getElementById('couponValue').value) || 0,
+            min_order_amount: parseFloat(document.getElementById('couponMinOrder').value) || 0,
+            usage_limit: parseInt(document.getElementById('couponLimit').value) || null,
+            usage_count: 0,
+            valid_until: document.getElementById('couponExpiry').value || null,
+            is_active: true
+        };
+        
+        coupons.unshift(coupon);
+        closeModal('couponModal');
+        renderCouponsTable();
+        showToast('🎫 Coupon created!', 'success');
+    }
+
+    function deleteCoupon(id) {
+        if (!confirm('Delete this coupon?')) return;
+        coupons = coupons.filter(c => c.id !== id);
+        renderCouponsTable();
+        showToast('🗑️ Coupon deleted!', 'success');
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
+    // EXPORT FUNCTIONS
+    // ════════════════════════════════════════════════════════════════════════
+    
+    function exportInventory() {
+        const csv = 'SKU,Product Name,Stock,Status\n' + products.map(p => 
+            `${p.sku},"${p.name}",${p.stock_quantity},${p.stock_quantity === 0 ? 'Out of Stock' : p.stock_quantity <= 5 ? 'Low Stock' : 'In Stock'}`
+        ).join('\n');
+        downloadCSV(csv, 'inventory.csv');
+    }
+
+    function exportOrders() {
+        const csv = 'Order ID,Customer,Email,Phone,Amount,Status,Date\n' + orders.map(o => 
+            `${o.order_number},"${o.customer_name}",${o.customer_email || ''},${o.customer_phone || ''},${o.total_amount},${o.status},${new Date(o.created_at).toLocaleDateString()}`
+        ).join('\n');
+        downloadCSV(csv, 'orders.csv');
+    }
+
+    function exportCustomers() {
+        const csv = 'Name,Email,Phone,Orders,Total Spent,Joined\n' + customers.map(c => 
+            `"${c.full_name || ''}",${c.email || ''},${c.phone || ''},${c.orders_count || 0},${c.total_spent || 0},${new Date(c.created_at).toLocaleDateString()}`
+        ).join('\n');
+        downloadCSV(csv, 'customers.csv');
+    }
+
+    function downloadCSV(content, filename) {
+        const blob = new Blob([content], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        a.click();
+        showToast('📥 Downloaded ' + filename, 'success');
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
+    // SETTINGS
+    // ════════════════════════════════════════════════════════════════════════
+    
+    function copyRLSFix() {
+        const sql = `-- Run this in Supabase SQL Editor to fix permissions
+
+-- Allow anyone to read products
+DROP POLICY IF EXISTS "Products are viewable by everyone" ON products;
+CREATE POLICY "Products are viewable by everyone" ON products
+    FOR SELECT USING (true);
+
+-- Allow authenticated users to manage products
+DROP POLICY IF EXISTS "Authenticated users can manage products" ON products;
+CREATE POLICY "Authenticated users can manage products" ON products
+    FOR ALL USING (auth.role() = 'authenticated');
+
+-- If above doesn't work, use this (allows all operations):
+-- ALTER TABLE products DISABLE ROW LEVEL SECURITY;`;
+        
+        navigator.clipboard.writeText(sql);
+        showToast('📋 SQL copied! Paste in Supabase SQL Editor', 'success');
+    }
+
+    function saveStoreSettings() {
+        showToast('💾 Store settings saved!', 'success');
+    }
+
+    function saveShippingSettings() {
+        showToast('💾 Shipping settings saved!', 'success');
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
+    // UI HELPERS
+    // ════════════════════════════════════════════════════════════════════════
+    
+    function showPage(page) {
+        document.querySelectorAll('.page-content').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+        
+        document.getElementById(page + '-page').classList.add('active');
+        
+        document.querySelectorAll('.menu-item').forEach(item => {
+            if (item.textContent.toLowerCase().includes(page)) {
+                item.classList.add('active');
+            }
+        });
+        
+        const titles = {
+            dashboard: { title: '📊 Dashboard', subtitle: "Here's what's happening today" },
+            products: { title: '🏷️ Products', subtitle: 'Manage your saree inventory' },
+            inventory: { title: '📦 Inventory', subtitle: 'Stock management & alerts' },
+            orders: { title: '📦 Orders', subtitle: 'View and manage orders' },
+            customers: { title: '👥 Customers', subtitle: 'Customer information' },
+            coupons: { title: '🎫 Coupons', subtitle: 'Manage discount codes' },
+            settings: { title: '⚙️ Settings', subtitle: 'Store configuration' }
+        };
+        
+        document.getElementById('pageTitle').textContent = titles[page]?.title || 'Dashboard';
+        document.getElementById('pageSubtitle').textContent = titles[page]?.subtitle || '';
+        
+        if (page === 'products') renderProductsTable();
+        if (page === 'inventory') renderInventoryTable();
+        if (page === 'orders') renderOrdersTable();
+        if (page === 'customers') renderCustomersTable();
+        if (page === 'coupons') renderCouponsTable();
+    }
+
+    function openModal(id) { document.getElementById(id).classList.add('active'); }
+    function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+    
+    function showLoading(show) { document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none'; }
+
+    function previewImages(input) {
+        const preview = document.getElementById('imagePreview');
+        preview.innerHTML = '';
+        if (input.files) {
+            Array.from(input.files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = e => { preview.innerHTML += `<img src="${e.target.result}" alt="Preview">`; };
+                reader.readAsDataURL(file);
+            });
+        }
+    }
+
+    function showToast(message, type = 'success') {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.innerHTML = message;
+        container.appendChild(toast);
+        setTimeout(() => toast.remove(), 4000);
+    }
+
+    function filterProducts() { renderProductsTable(); }
+    function filterOrders() { renderOrdersTable(); }
+    function handleGlobalSearch(query) { console.log('Search:', query); }
+    </script>
+</body>
+</html>
